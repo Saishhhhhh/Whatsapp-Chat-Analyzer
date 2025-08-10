@@ -1,5 +1,8 @@
 import pandas as pd
 from urlextract import URLExtract
+from wordcloud import WordCloud
+import emoji
+from collections import Counter
 
 extract = URLExtract()
 
@@ -71,6 +74,17 @@ def monthwise_timeline(df):
 
   return timeline
 
+#Hourly Timeline
+def hourly_timeline(df):
+  timeline = df.groupby('period')['messages'].count().reset_index()
+  time_period_order = [
+      '00-1', '1-2', '2-3', '3-4', '4-5', '5-6', '6-7', '7-8', '8-9', '9-10',
+      '10-11', '11-12', '12-13', '13-14', '14-15', '15-16', '16-17', '17-18',
+      '18-19', '19-20', '20-21', '21-22', '22-23', '23-00'
+    ]
+  timeline = timeline.set_index('period').reindex(time_period_order).reset_index()
+  return timeline
+
 # Weekly Activity
 def weekly_heatmap(df):
   user_heatmap = df.pivot_table(index='day_name', columns='period', values='messages', aggfunc='count').fillna(0)
@@ -89,3 +103,35 @@ def weekly_heatmap(df):
   user_heatmap = user_heatmap[existing_columns]
 
   return user_heatmap
+
+# Wordcloud
+
+def create_wordcloud(df):
+
+  wc = WordCloud(width=500, height = 500, min_font_size = 10, background_color = "white")
+  df2 = df[df['messages'] != "<Media omitted>"]
+  df_wc = wc.generate(df2['messages'].str.cat(sep=" "))
+  return df_wc
+
+#Most common emojis
+def most_common_emojis_dataframe(df):
+  emojis = []
+  for message in df['messages']:
+      emojis.extend([char for char in message if char in emoji.EMOJI_DATA])
+
+  emoji_df = pd.DataFrame(Counter(emojis).most_common(10), columns=['emoji', 'count'])
+  return emoji_df
+
+
+#Most busy users barplot
+def busy_user_bar(df):
+  return df.groupby('user')['messages'].count().reset_index()
+
+#Most busy users dataframe
+def busy_user_dataframe(df):
+  df2 = df.groupby('user')['messages'].count().reset_index()
+  total_messages = df2['messages'].sum()
+  df2['percentage'] = round((df2['messages']/ total_messages)*100,2)
+  df2 = df2.sort_values('percentage', ascending=False)
+  df2 = df2.drop(columns='messages', axis=1)
+  return df2

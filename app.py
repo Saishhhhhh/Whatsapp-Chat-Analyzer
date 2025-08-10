@@ -109,6 +109,18 @@ if uploaded_file is not None:
         plt.xticks(rotation='vertical') 
         st.pyplot(fig)
 
+        #Hourly Timeline
+        timeline = helper.hourly_timeline(df)
+        fig,ax = plt.subplots() # Create a Matplotlib figure and axes
+        sns.barplot(x = timeline['period'], y = timeline['messages'])
+
+        ax.set_title("Messages Per Hour") # Customize with Matplotlib
+        ax.set_ylabel("No. Of Messages")
+        ax.set_xlabel("")
+
+        plt.xticks(rotation='vertical') 
+        st.pyplot(fig)
+
         #Activity Map
 
         #Weekly Timeline
@@ -145,6 +157,48 @@ if uploaded_file is not None:
         ax.set_xlabel("Hour Of The Day")
 
         st.pyplot(fig)
+
+        #Wordcloud
+        df_wc = helper.create_wordcloud(df)
+        fig,ax = plt.subplots()
+        ax.imshow(df_wc)
+        st.pyplot(fig)
+
+        #Only All Features
+        if(choice == 'all'):
+
+            #Most busy users barplot
+            timeline = helper.busy_user_bar(df)
+            fig,ax = plt.subplots() # Create a Matplotlib figure and axes
+            sns.barplot(x = timeline['user'], y = timeline['messages'])
+
+            ax.set_title("Most Busy Users") # Customize with Matplotlib
+            ax.set_ylabel("")
+            ax.set_xlabel("")
+
+            plt.xticks(rotation='vertical') 
+            st.pyplot(fig)
+
+            #Most busy users dataframe
+
+            percent_df = helper.busy_user_dataframe(df)
+
+            st.dataframe(percent_df)
+
+           
+        emoji_frame = helper.most_common_emojis_dataframe(df)
+
+        st.dataframe(emoji_frame)
+
+        fig,ax = plt.subplots()
+        ax.pie(
+            emoji_frame['count'].head(),
+            labels=emoji_frame['emoji'].head(),
+            autopct="%0.2f%%"  # Added % to make it show percentages
+        )
+        st.pyplot(fig)
+
+
 
 
 # If no file is uploaded (welcome screen)
