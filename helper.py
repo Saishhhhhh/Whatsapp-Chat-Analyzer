@@ -134,4 +134,120 @@ def busy_user_dataframe(df):
   df2['percentage'] = round((df2['messages']/ total_messages)*100,2)
   df2 = df2.sort_values('percentage', ascending=False)
   df2 = df2.drop(columns='messages', axis=1)
+  
   return df2
+
+def chatterbox(df):
+  df2 = df.groupby('user')['messages'].count().reset_index()
+  df2 = df2.sort_values('messages', ascending=False)
+
+  df2 = df2[df2['user'] != 'Meta AI']
+
+  return df2.loc[df2['messages'].idxmax()]
+
+def keyboard_warrior(df):
+  df2 = df.groupby('user')['word_count'].sum().reset_index()
+  df2 = df2.sort_values('word_count', ascending=False)
+
+  df2 = df2[df2['user'] != 'Meta AI']
+
+  return df2.loc[df2['word_count'].idxmax()]
+
+def media_Paglu(df):
+  df2 = df.query('messages == "<Media omitted>"')
+  df2 = df2.groupby('user')['messages'].count().reset_index().sort_values('messages', ascending=False)
+
+  df2 = df2[df2['user'] != 'Meta AI']
+
+  return df2.loc[df2['messages'].idxmax()]
+
+def linkMaster(df):
+  extractor = URLExtract()
+
+  # Count number of links for each message
+  df['link_count'] = df['messages'].apply(lambda msg: len(extractor.find_urls(msg)))
+
+  # Group by user and sum link counts
+  df2 = df.groupby('user', as_index=False)['link_count'].sum()
+
+  df2 = df2[df2['user'] != 'Meta AI']
+
+  # Find the user with the maximum number of links
+  return df2.loc[df2['link_count'].idxmax()]
+  
+#A person who messages from 5am - 9am
+def early_bird(df):
+    # Early bird: messages sent between 5 AM and 8 AM (inclusive)
+    df_early = df[(df['hour'] >= 5) & (df['hour'] <= 8)]
+    if df_early.empty:
+        return None
+    df2 = df_early.groupby('user')['messages'].count().reset_index()
+    df2 = df2.sort_values('messages', ascending=False)
+
+    df2 = df2[df2['user'] != 'Meta AI']
+
+    return df2.loc[df2['messages'].idxmax()]
+
+def nightowl(df):
+    # Night owl: messages sent between 10 PM and 2 AM
+    df_night = df[(df['hour'] >= 22) | (df['hour'] <= 2)]
+    if df_night.empty:
+        return None
+    df2 = df_night.groupby('user')['messages'].count().reset_index()
+    df2 = df2.sort_values('messages', ascending=False)
+
+    df2 = df2[df2['user'] != 'Meta AI']
+
+    return df2.loc[df2['messages'].idxmax()]
+
+
+# Least average words per message
+def dryReplier(df):
+    df['word_count'] = df['messages'].apply(lambda x: len(x.split()))
+    df2 = df.groupby('user')['word_count'].mean().reset_index()
+    df2['word_count'] = df2['word_count'].round(2)
+    
+    # Remove Meta AI
+    df2 = df2[df2['user'] != 'Meta AI']
+    
+    return df2.loc[df2['word_count'].idxmin()]
+
+# Highest average words per message
+def eassyWriter(df):
+    df['word_count'] = df['messages'].apply(lambda x: len(x.split()))
+    df2 = df.groupby('user')['word_count'].mean().reset_index()
+    df2['word_count'] = df2['word_count'].round(2)
+    
+    # Remove Meta AI
+    df2 = df2[df2['user'] != 'Meta AI']
+    
+    return df2.loc[df2['word_count'].idxmax()]
+
+
+#Least Message in the group
+def ghost(df):
+    df2 = df.groupby('user')['messages'].count().reset_index()
+    df2 = df2.sort_values('messages', ascending=False)
+    
+    ghost_user = df2.loc[df2['messages'].idxmin()]
+    
+    if ghost_user['user'] == 'Meta AI':
+        df2 = df2[df2['user'] != 'Meta AI']
+        ghost_user = df2.loc[df2['messages'].idxmin()]
+    
+    return ghost_user
+
+#Person Doing the most first Messages of the day
+def conversationStarter(df):
+  df = df[df['hour'] >= 6]
+
+  df = df.sort_values(by=['date', 'hour', 'minute'])
+
+  first_senders = df.groupby('date').first().reset_index()
+
+  starter_counts = first_senders['user'].value_counts().reset_index()
+  starter_counts.columns = ['user', 'count']
+
+  starter_counts = starter_counts[starter_counts['user'] != 'Meta AI']
+  
+  return starter_counts.iloc[0]

@@ -198,8 +198,79 @@ if uploaded_file is not None:
         )
         st.pyplot(fig)
 
+        if(choice == 'all'):
 
+            #Awards Section
 
+            frame = helper.chatterbox(df)
+            if frame is not None:
+                st.text(f"Highest Messages: {frame['user']}")
+                st.text(frame['messages'])
+            else:
+                st.text("No messages found.")
+
+            frame = helper.keyboard_warrior(df)
+            if frame is not None:
+                st.text(f"Highest Word Count: {frame['user']}")
+                st.text(frame['word_count'])
+            else:
+                st.text("No messages found.")
+
+            frame = helper.media_Paglu(df)
+            if frame is not None:
+                st.text(f"Most Media Messages: {frame['user']}")
+                st.text(frame['messages'])
+            else:
+                st.text("No messages found.")
+
+            frame = helper.linkMaster(df)
+            if frame is not None:
+                st.text(f"Most Links Shared: {frame['user']}")
+                st.text(frame['link_count'])
+            else:
+                st.text("No messages found.")
+
+            frame = helper.early_bird(df)
+            if frame is not None:
+                st.text(f"Early Bird: {frame['user']}")
+                st.text(frame['messages'])
+            else:
+                st.text("No messages found.")
+
+            frame = helper.nightowl(df)
+            if frame is not None:
+                st.text(f"Night Owl: {frame['user']}")
+                st.text(frame['messages'])
+            else:
+                st.text("No messages found.")
+
+            frame = helper.dryReplier(df)
+            if frame is not None:
+                st.text(f"Dry Replier: {frame['user']}")
+                st.text(frame['word_count'])
+            else:
+                st.text("No messages found.")
+
+            frame = helper.eassyWriter(df)
+            if frame is not None:
+                st.text(f"Eassy Writer: {frame['user']}")
+                st.text(frame['word_count'])
+            else:
+                st.text("No messages found.")
+
+            frame = helper.ghost(df)
+            if frame is not None:
+                st.text(f"Ghost: {frame['user']}")
+                st.text(frame['messages'])
+            else:
+                st.text("No messages found.")
+
+            frame = helper.conversationStarter(df)
+            if frame is not None:
+                st.text(f"Conversation Starter: {frame['user']}")
+                st.text(frame['count'])
+            else:
+                st.text("No messages found.")
 
 # If no file is uploaded (welcome screen)
 elif uploaded_file is None:
