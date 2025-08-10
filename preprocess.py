@@ -4,14 +4,35 @@ import re
 def create_dataframe_from_file(uploaded_file):
     bytes_data = uploaded_file.getvalue()
     content = bytes_data.decode("utf-8")
+    # Normalize narrow/non-breaking spaces that may precede am/pm
+    content = content.replace('\u202f', ' ').replace('\xa0', ' ')
     
-    pattern = '\d{1,2}/\d{1,2}/\d{2,4},\s\d{1,2}:\d{2}\s-\s'
+    # Support optional AM/PM (e.g., "11:40 am - ")
+    pattern = r'\d{1,2}/\d{1,2}/\d{2,4},\s\d{1,2}:\d{2}(?:\s*[apAP][mM])?\s-\s'
     messages = re.split(pattern, content)[1:]
 
     dates = re.findall(pattern, content)
 
     df = pd.DataFrame({'user_message': messages, 'date': dates})
-    df['date'] = pd.to_datetime(df['date'], format='%d/%m/%Y, %H:%M - ')
+    
+    # Robust parser: try 24h and 12h formats (2- or 4-digit years), fallback to inference
+    def parse_date_str(date_str: str):
+        s = date_str.replace('\u202f', ' ').replace('\xa0', ' ')
+        s = re.sub(r'(\d{1,2}:\d{2})\s*([ap]m)\b',
+                   lambda m: f"{m.group(1)} {m.group(2).upper()}", s, flags=re.IGNORECASE)
+        for fmt in (
+            '%d/%m/%Y, %H:%M - ',
+            '%d/%m/%y, %H:%M - ',
+            '%d/%m/%Y, %I:%M %p - ',
+            '%d/%m/%y, %I:%M %p - ',
+        ):
+            try:
+                return pd.to_datetime(s, format=fmt)
+            except ValueError:
+                continue
+        return pd.to_datetime(s, dayfirst=True, errors='coerce')
+
+    df['date'] = df['date'].apply(parse_date_str)
 
     users = []
     messages = []
